@@ -28,7 +28,7 @@ Internal::Internal ()
 #endif
       arena (this), prefix ("c "), internal (this), external (0),
       termination_forced (false), vars (this->max_var),
-      lits (this->max_var) {
+      lits (this->max_var), gauss () {
   control.push_back (Level (0, 0));
 
   // The 'dummy_binary' is used in 'try_to_subsume_clause' to fake a real
@@ -227,6 +227,17 @@ void Internal::add_original_lit (int lit) {
     add_new_original_clause (id);
     original.clear ();
   }
+}
+
+void Internal::add_xor_clause (const vector<int> &lits) {
+  Gaussian::Xor eq;
+  for (int lit : lits) {
+    if (!lit) continue;
+    eq.vars.push_back (abs (lit));
+    if (lit < 0)
+      eq.rhs = !eq.rhs;
+  }
+  gauss.add_clause (eq);
 }
 
 void Internal::finish_added_clause_with_id (uint64_t id, bool restore) {
@@ -826,6 +837,14 @@ int Internal::solve (bool preprocess_only) {
   START (solve);
   if (proof)
     proof->solve_query ();
+  if (process_xors ()) {
+    int res = 20;
+    finalize (res);
+    reset_solving ();
+    report_solving (res);
+    STOP (solve);
+    return res;
+  }
   if (opts.ilb) {
     if (opts.ilbassumptions)
       sort_and_reuse_assumptions ();
@@ -916,6 +935,27 @@ void Internal::reset_solving () {
 
     LOG ("reset forced termination");
   }
+}
+
+bool Internal::process_xors () {
+  if (gauss.empty ()) return false;
+  auto sol = gauss.eliminate ();
+  if (!sol) {
+    learn_empty_clause ();
+    return true;
+  }
+  for (size_t i = 0; i < sol->size (); ++i) {
+    int lit = (*sol)[i] ? (int) (i + 1) : -((int) (i + 1));
+    signed char v = val (lit);
+    if (!v)
+      assign_unit (lit);
+    else if ((v > 0) != (*sol)[i]) {
+      learn_empty_clause ();
+      return true;
+    }
+  }
+  gauss.clear ();
+  return false;
 }
 
 int Internal::restore_clauses () {
