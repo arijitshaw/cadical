@@ -100,6 +100,7 @@ extern "C" {
 #include "version.hpp"
 #include "vivify.hpp"
 #include "watch.hpp"
+#include "xor_solver.hpp"
 
 /*------------------------------------------------------------------------*/
 
@@ -278,6 +279,8 @@ struct Internal {
   Format error_message; // provide persistent error message
   string prefix;        // verbose messages prefix
 
+  XORSolver xor_solver; // solver for XOR clauses
+
   Internal *internal; // proxy to 'this' in macros
   External *external; // proxy to 'external' buddy in 'Solver'
 
@@ -318,6 +321,8 @@ struct Internal {
 
   // Reserve ids for original clauses to produce lrat
   void reserve_ids (int number);
+
+  void add_xor_clause (const std::vector<int> &lits);
 
   // Enlarge tables.
   //
@@ -1229,6 +1234,7 @@ struct Internal {
   int cdcl_loop_with_inprocessing ();
   void reset_solving ();
   int solve (bool preprocess_only = false);
+  bool process_xors ();
   void finalize (int);
 
   //

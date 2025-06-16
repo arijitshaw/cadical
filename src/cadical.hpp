@@ -242,6 +242,8 @@ public:
   //   if (!lit) ensure (STEADY )       // and thus READY
   //
   void add (int lit);
+  // Add XOR literal; terminated by zero to finalize XOR clause.
+  void add_xor (int lit);
 
   // Here are functions simplifying clause addition. The given literals
   // should all be valid (different from 'INT_MIN' and different from '0').
@@ -943,10 +945,11 @@ public:
 private:
   //==== start of state ====================================================
 
-  // The solver is in the state ADDING if either the current clause or the
-  // constraint (or both) is not yet terminated.
+  // The solver is in the state ADDING if either the current clause, an XOR
+  // clause, or the constraint (or all) is not yet terminated.
   bool adding_clause;
   bool adding_constraint;
+  bool adding_xor;
 
   State _state; // API states as discussed above.
 
