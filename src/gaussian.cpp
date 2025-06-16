@@ -1,14 +1,14 @@
-#include "xor_solver.hpp"
+#include "gaussian.hpp"
 
 #include <algorithm>
 
 namespace CaDiCaL {
 
-void XORSolver::add_equation(const Equation &eq) {
-  equations.push_back(eq);
+void Gaussian::add_clause(const Xor &clause) {
+  equations.push_back(clause);
 }
 
-std::optional<std::vector<bool>> XORSolver::solve() const {
+std::optional<std::vector<bool>> Gaussian::eliminate() const {
   // Determine the maximum variable index
   int max_var = 0;
   for (const auto &eq : equations)

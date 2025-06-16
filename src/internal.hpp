@@ -100,7 +100,7 @@ extern "C" {
 #include "version.hpp"
 #include "vivify.hpp"
 #include "watch.hpp"
-#include "xor_solver.hpp"
+#include "gaussian.hpp"
 
 /*------------------------------------------------------------------------*/
 
@@ -279,7 +279,7 @@ struct Internal {
   Format error_message; // provide persistent error message
   string prefix;        // verbose messages prefix
 
-  XORSolver xor_solver; // solver for XOR clauses
+  Gaussian gauss; // solver for XOR clauses
 
   Internal *internal; // proxy to 'this' in macros
   External *external; // proxy to 'external' buddy in 'Solver'

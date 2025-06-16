@@ -28,7 +28,7 @@ Internal::Internal ()
 #endif
       arena (this), prefix ("c "), internal (this), external (0),
       termination_forced (false), vars (this->max_var),
-      lits (this->max_var), xor_solver () {
+      lits (this->max_var), gauss () {
   control.push_back (Level (0, 0));
 
   // The 'dummy_binary' is used in 'try_to_subsume_clause' to fake a real
@@ -230,14 +230,14 @@ void Internal::add_original_lit (int lit) {
 }
 
 void Internal::add_xor_clause (const vector<int> &lits) {
-  XORSolver::Equation eq;
+  Gaussian::Xor eq;
   for (int lit : lits) {
     if (!lit) continue;
     eq.vars.push_back (abs (lit));
     if (lit < 0)
       eq.rhs = !eq.rhs;
   }
-  xor_solver.add_equation (eq);
+  gauss.add_clause (eq);
 }
 
 void Internal::finish_added_clause_with_id (uint64_t id, bool restore) {
@@ -938,8 +938,8 @@ void Internal::reset_solving () {
 }
 
 bool Internal::process_xors () {
-  if (xor_solver.empty ()) return false;
-  auto sol = xor_solver.solve ();
+  if (gauss.empty ()) return false;
+  auto sol = gauss.eliminate ();
   if (!sol) {
     learn_empty_clause ();
     return true;
@@ -954,7 +954,7 @@ bool Internal::process_xors () {
       return true;
     }
   }
-  xor_solver.clear ();
+  gauss.clear ();
   return false;
 }
 
