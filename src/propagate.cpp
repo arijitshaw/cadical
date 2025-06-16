@@ -477,9 +477,13 @@ bool Internal::propagate () {
     }
   }
 
+  bool xor_conflict = false;
+  if (!conflict)
+    xor_conflict = propagate_xors ();
+
   STOP (propagate);
 
-  return !conflict;
+  return !conflict && !xor_conflict;
 }
 
 /*------------------------------------------------------------------------*/

@@ -1235,6 +1235,7 @@ struct Internal {
   void reset_solving ();
   int solve (bool preprocess_only = false);
   bool process_xors ();
+  bool propagate_xors ();
   void finalize (int);
 
   //

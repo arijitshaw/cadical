@@ -6,6 +6,8 @@
 
 namespace CaDiCaL {
 
+class Internal; // forward declaration
+
 // Simple Gauss-Jordan elimination over GF(2) for XOR clauses.
 // This code is derived in spirit from CryptoMiniSat's Gaussian
 // elimination implementation (MIT licensed).
@@ -21,6 +23,10 @@ public:
   void add_clause(const Xor &clause);
   // Solve the system. Returns empty optional if unsatisfiable.
   std::optional<std::vector<bool>> eliminate() const;
+
+  // Propagate given the current assignments in 'internal'.
+  // Returns true if a conflict was detected.
+  bool propagate(Internal *internal);
 
   bool empty() const { return equations.empty(); }
   void clear() { equations.clear(); }

@@ -958,6 +958,15 @@ bool Internal::process_xors () {
   return false;
 }
 
+bool Internal::propagate_xors () {
+  if (gauss.empty ()) return false;
+  if (gauss.propagate(this)) {
+    learn_empty_clause();
+    return true;
+  }
+  return false;
+}
+
 int Internal::restore_clauses () {
   int res = 0;
   if (opts.restoreall <= 1 && external->tainted.empty ()) {

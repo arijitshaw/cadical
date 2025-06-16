@@ -1,4 +1,5 @@
 #include "gaussian.hpp"
+#include "internal.hpp"
 
 #include <algorithm>
 
@@ -6,6 +7,39 @@ namespace CaDiCaL {
 
 void Gaussian::add_clause(const Xor &clause) {
   equations.push_back(clause);
+}
+
+bool Gaussian::propagate(Internal *internal) {
+  bool updated = true;
+  while (updated) {
+    updated = false;
+    for (const auto &eq : equations) {
+      bool rhs = eq.rhs;
+      int unassigned = 0, last = 0;
+      for (int v : eq.vars) {
+        signed char val = internal->val(v);
+        if (val > 0)
+          rhs = !rhs;
+        else if (!val) {
+          unassigned++;
+          last = v;
+        }
+      }
+      if (!unassigned) {
+        if (rhs)
+          return true; // conflict
+      } else if (unassigned == 1) {
+        int lit = rhs ? last : -last;
+        signed char val = internal->val(lit);
+        if (!val)
+          internal->assign_unit(lit);
+        else if (val < 0)
+          return true; // conflict
+        updated = true;
+      }
+    }
+  }
+  return false;
 }
 
 std::optional<std::vector<bool>> Gaussian::eliminate() const {
